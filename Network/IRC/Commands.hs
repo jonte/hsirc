@@ -14,6 +14,7 @@ module Network.IRC.Commands (
   , channelMode
   , userMode
   , topic
+  , invite
   ) where
 
 import Network.IRC.Base
@@ -62,3 +63,6 @@ userMode n m = mkMessage "MODE" [n,m]
 
 topic :: Channel -> String -> Message
 topic c t = mkMessage "TOPIC" [c,t]
+
+invite :: Channel -> UserName -> Message
+invite c u = mkMessage "INVITE" [c,u]
