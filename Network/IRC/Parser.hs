@@ -29,7 +29,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 -- | Parse a String into a Message.
 decode :: String        -- ^ Message string
        -> Maybe Message -- ^ Parsed message
-decode = (either (const Nothing) Just) . (parse message "")
+decode = either (const Nothing) Just . parse message ""
 
 -- | The deprecated version of decode
 parseMessage :: String -> Maybe Message
@@ -37,7 +37,7 @@ parseMessage  = decode
 
 -- | Take all tokens until one character from a given string is found
 takeUntil :: String -> CharParser st String
-takeUntil s = anyChar `manyTill` (lookAhead (oneOf s))
+takeUntil s = anyChar `manyTill` lookAhead (oneOf s)
 
 -- | Convert a parser that consumes all space after it
 tokenize  :: CharParser st a -> CharParser st a
@@ -53,7 +53,7 @@ prefix  = char ':' >> (try nicknamePrefix <|> serverPrefix)
 
 -- | Parse a Server prefix
 serverPrefix :: CharParser st Prefix
-serverPrefix  = takeUntil " " >>= return . Server
+serverPrefix  = liftM Server $ takeUntil " "
 
 -- | Parse a NickName prefix
 nicknamePrefix :: CharParser st Prefix
@@ -67,7 +67,7 @@ nicknamePrefix  = do
 
 -- | Parse a command.  Either a string of capital letters, or 3 digits.
 command :: CharParser st Command
-command  = (many1 upper)
+command  = many1 upper
         <|> do x <- digit
                y <- digit
                z <- digit
@@ -76,12 +76,12 @@ command  = (many1 upper)
 -- | Parse a command parameter.
 parameter :: CharParser st Parameter
 parameter  =  (char ':' >> takeUntil "\r\n")
-          <|> (takeUntil " \r\n")
+          <|> takeUntil " \r\n"
 
 -- | Parse a cr lf
 crlf :: CharParser st ()
 crlf  =  (char '\r' >> optional (char '\n'))
-     <|> (char '\n' >> return ()           )
+     <|> void (char '\n')
 
 
 -- | Parse a Message
